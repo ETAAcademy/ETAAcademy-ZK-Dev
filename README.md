@@ -14,7 +14,7 @@ This GitHub repository serves as a curated list of valuable resources for anyone
 
 ## References
 
-- [Awesome Zero Knowledge](https://github.com/matter-labs/awesome-zero-knowledge-proofs)
+- [Awesome Zero Knowledge]([https://github.com/matter-labs/awesome-zero-knowledge-proofs](https://github.com/ventali/awesome-zk/tree/main))
 - [ZK Developer's Reference](https://www.zkoss.org/wiki/ZK_Developer%27s_Reference/Overture/Extensions)
 - [Awesome zero knowledge proofs (zkp)](https://github.com/matter-labs/awesome-zero-knowledge-proofs)
 - [Delendum](https://github.com/delendum-xyz)
