@@ -15,6 +15,7 @@ class Proof:
     msg_4: Message4
     msg_5: Message5
 
+    # s1, s2, s3 是sigma1, sigma2, sigma3？？？
     def flatten(self):
         proof = {}
         proof["a_1"] = self.msg_1.a_1
@@ -128,6 +129,7 @@ class Prover:
             witness[None] = 0
 
         # Compute wire assignments
+        # 左右输入和输出
         A_values = [Scalar(0) for _ in range(group_order)]
         B_values = [Scalar(0) for _ in range(group_order)]
         C_values = [Scalar(0) for _ in range(group_order)]
@@ -137,15 +139,18 @@ class Prover:
             B_values[i] = Scalar(witness[gate_wires.R])
             C_values[i] = Scalar(witness[gate_wires.O])
 
+        # 左右输入、输出插值成多项式
         self.A = Polynomial(A_values, Basis.LAGRANGE)
         self.B = Polynomial(B_values, Basis.LAGRANGE)
         self.C = Polynomial(C_values, Basis.LAGRANGE)
 
+        # 多项式承诺
         a_1 = setup.commit(self.A)
         b_1 = setup.commit(self.B)
         c_1 = setup.commit(self.C)
 
         # Sanity check that witness fulfils gate constraints
+        # qL · wa + qR · wb + qM · (wa · wb) + qc - qo · wc = 0
         assert (
             self.A * self.pk.QL
             + self.B * self.pk.QR
@@ -156,6 +161,7 @@ class Prover:
             == Polynomial([Scalar(0)] * group_order, Basis.LAGRANGE)
         )
 
+        # 多项式承诺
         return Message1(a_1, b_1, c_1)
 
     def round_2(self) -> Message2:
@@ -176,9 +182,11 @@ class Prover:
                 / self.rlc(self.C.values[i], self.pk.S3.values[i])
             )
         # The last value is 1
+        # Z_values 就是所有的辅助向量 r
         assert Z_values.pop() == 1
 
         # Sanity-check that Z was computed correctly
+        # 置换的最后的那个等式
         for i in range(group_order):
             assert (
                 self.rlc(self.A.values[i], roots_of_unity[i])
@@ -210,7 +218,7 @@ class Prover:
 
         roots_of_unity = Scalar.roots_of_unity(group_order)
 
-        A_coeff, B_coeff, C_coeff, S1_coeff, S2_coeff, S3_coeff, Z_coeff, QL_coeff, QR_coeff, QM_coeff, QO_coeff, QC_coeff, PI_coeff = (
+        A_coeff, B_coeff, C_coeff, S1_coeff, S2_coeff, S3_coeff, Z_coeff, QL_coeff, QR_coeff, QM_coeff, QO_coeff, QC_coeff, PI_coeff, QK_coeff = (
             x.ifft()
             for x in (
                 self.A,
@@ -226,6 +234,7 @@ class Prover:
                 self.pk.QO,
                 self.pk.QC,
                 self.PI,
+                self.pk.QK,
             )
         )
 
@@ -255,6 +264,8 @@ class Prover:
         # z * w
         ZW = self.Z.shift(1)
         ZW_coeff = ZW.ifft()
+        Z_W = self.Z.shift(1)
+        Z_W_coeff = Z_W.ifft()
 
         for i in range(group_order):
             assert (
@@ -281,10 +292,28 @@ class Prover:
 
         permutation_first_row_coeff = (Z_coeff - Scalar(1)) * L0_coeff
 
+        permutation_grand_product_coeff2 = (
+            QK_coeff(self.rlw(A_coeff, B_coeff, C_coeff))
+        )
+
+        permutation_grand_product_coeff3 = (
+            # Todo
+            self.rlt(f_coeff, t_coeff,tw_coeff)*Z_W_coeff - (self.rls(se_coeff, so_coeff)) * Z_W  
+
+        )
+
+        permutation_second_row_coeff = (
+            # Todo
+            permutation_first_row_coeff = (Z2_coeff - Scalar(1)) * L0_coeff
+        )
+
         all_constraints = (
             gate_constraints_coeff
             + permutation_grand_product_coeff * alpha
             + permutation_first_row_coeff * alpha**2
+            + permutation_grand_product_coeff2 * alpha**3
+            + permutation_grand_product_coeff3 * alpha**4
+            + permutation_second_row_coeff * alpha**5
         )
 
         # quotient polynomial
@@ -401,6 +430,15 @@ class Prover:
 
     def rlc(self, term_1, term_2):
         return term_1 + term_2 * self.beta + self.gamma
+    
+    def rlw(self, term_1, term_2, term_3):
+        return term_1 + term_2 * self.eta + term_3 * self.eta**2
+    
+    def rlt(self, term_1, term_2, term_3):
+        return ((1 + self.beta) * (term_1 + self.gamma)) * (term_2 + self.beta * term_3 + self.gamma *(1+ self.beta))
+    
+    def rls(self, term_1, term_2):
+        return (term_1 + self.bata*term_2 + self.gamma*(1+self.bata))*(term_2 + self.bata*term_1 + self.gamma*(1+self.bata))
 
     def generate_commitment(self, coeff: Polynomial, eval: Scalar):
         setup = self.setup

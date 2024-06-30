@@ -122,10 +122,29 @@ class VerificationKey:
 
         permutation_first_row_eval = L0_ev * (z_eval - 1)
 
+        permutation_grand_product_coeff2 = (
+            QK_coeff(self.rlw(A_coeff, B_coeff, C_coeff))
+        )
+
+        permutation_grand_product_coeff3 = (
+            # Todo
+            self.rlt(f_coeff, t_coeff,tw_coeff)*Z_W_coeff - (self.rls(se_coeff, so_coeff)) * Z_W  
+
+        )
+
+        permutation_second_row_coeff = (
+            # Todo
+            permutation_first_row_coeff = (Z2_coeff - Scalar(1)) * L0_coeff
+        )
+
+            # Todo
         left = (
             gate_constraints_eval
             + alpha * permutation_grand_product_eval
             +  alpha ** 2 * permutation_first_row_eval
+            + permutation_grand_product_coeff2 * alpha**3
+            + permutation_grand_product_coeff3 * alpha**4
+            + permutation_second_row_coeff * alpha**5
         )
 
         right = t_eval * ZH_ev

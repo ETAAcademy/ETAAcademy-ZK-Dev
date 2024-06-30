@@ -13,7 +13,6 @@ class Setup(object):
     # = ( G,    xG,  ...,  x^{d-1}G ), where G is a generator of G_1
     powers_of_x: list[G1Point]
     # [x]₂ = xH, where H is a generator of G_2
-    # 椭圆曲线两个群 G1 G2
     X2: G2Point
 
     @classmethod
@@ -42,7 +41,6 @@ class Setup(object):
         X2 = b.multiply(b.G2, tau)
         print("Generated G2 side, X^1 point: {}".format(X2))
 
-        # verify point is on the curve
         assert b.is_on_curve(powers_of_x[1], b.b)
         assert b.is_on_curve(X2, b.b2)
         # check pairing
@@ -64,6 +62,7 @@ class Setup(object):
         return ec_lincomb([(s, x) for s, x in zip(self.powers_of_x, coeffs)])
 
     # Generate the verification key for this program with the given setup
+    # S1, S2, S3
     def verification_key(self, pk: CommonPreprocessedInput) -> VerificationKey:
         return VerificationKey(
             pk.group_order,
@@ -72,9 +71,13 @@ class Setup(object):
             self.commit(pk.QR),
             self.commit(pk.QO),
             self.commit(pk.QC),
+            self.commit(pk.QK),
             self.commit(pk.S1),
             self.commit(pk.S2),
-            self.commit(pk.S3),
+            self.commit(pk.S3),            
+            self.commit(pk.T1),
+            self.commit(pk.T2),
+            self.commit(pk.T3),
             self.X2,
             Scalar.root_of_unity(pk.group_order),
         )

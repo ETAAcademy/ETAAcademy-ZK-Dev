@@ -2,7 +2,7 @@
 name = "baby-plonk"
 version = "0.1.0"
 description = "A simple Python implementation of PLONK adapted from Plonkathon"
-authors = ["Harry Liu / 0xPARC / Vitalik Buterin"]
+authors = ["hattiepwvi <pwhattie@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 
