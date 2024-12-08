@@ -21,7 +21,7 @@
 
 ## 简介
 
-本文作者: [Eta](https://twitter.com/pwhattie)
+本文作者: [Evta](https://twitter.com/pwhattie)
 
 这一讲我们将会搭建一个流动性池合约，该合约可以接受用户的流动性，并在特定价格区间内进行交易。
 
